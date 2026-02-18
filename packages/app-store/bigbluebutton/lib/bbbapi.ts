@@ -1,5 +1,7 @@
 import { createHash } from "crypto";
 
+import { validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
+
 export type ChecksumAlgorithm = "sha1" | "sha256" | "sha384" | "sha512";
 
 export interface BBBCredentials {
@@ -132,6 +134,15 @@ export async function validateBBBServer(
   credentials: BBBCredentials
 ): Promise<{ version: string; apiVersion: string }> {
   const baseUrl = credentials.serverUrl.replace(/\/+$/, "");
+
+  // SSRF protection: reject private/internal IPs and cloud metadata endpoints
+  // before making the outbound request. This prevents an authenticated user from
+  // probing internal services via the serverUrl field.
+  const ssrfCheck = await validateUrlForSSRF(`${baseUrl}/api`);
+  if (!ssrfCheck.isValid) {
+    throw new Error(`Server URL is not allowed: ${ssrfCheck.error}`);
+  }
+
   const response = await fetch(`${baseUrl}/api`);
   if (!response.ok) {
     throw new Error(`Cannot reach BBB server: HTTP ${response.status}`);

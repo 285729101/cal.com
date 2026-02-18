@@ -11,15 +11,17 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { appKeysSchema, type AppKeys } from "../../zod";
 
-const CHECKSUM_OPTIONS = [
-  { value: "sha256", label: "SHA-256 (recommended)" },
-  { value: "sha512", label: "SHA-512" },
-  { value: "sha384", label: "SHA-384" },
-  { value: "sha1", label: "SHA-1 (legacy)" },
-] as const;
-
 export default function BigBlueButtonSetup() {
   const { t } = useLocale();
+
+  // Build checksum options with localized labels so translators can adapt them
+  // per locale (e.g. different parenthetical notes for recommended/legacy status).
+  const CHECKSUM_OPTIONS = [
+    { value: "sha256", label: t("bigbluebutton_checksum_sha256") },
+    { value: "sha512", label: t("bigbluebutton_checksum_sha512") },
+    { value: "sha384", label: t("bigbluebutton_checksum_sha384") },
+    { value: "sha1", label: t("bigbluebutton_checksum_sha1") },
+  ] as const;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
